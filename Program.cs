@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Data;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using Microsoft.IdentityModel.Abstractions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using ADBanker_CE_Import.Services;
 
 
 namespace ADBanker_CE_Import
@@ -22,14 +18,6 @@ namespace ADBanker_CE_Import
         static string clientId = "7ce15f9cbc7462eb56f4cbabe1fd7f6c844c1e8010c5a9603ffdd6efc7a7d99c";
         static string clientSecret = "905a23f9bf06105e69cc7981e232bdcf58a3d8e2bea76baa712db1da486f02647c07227f4b58cb036a86f70b11eff1a18481c43ca4ce93f4ea576e83ad4866c21b7c5a1e47832aebf21a6958882167064eab99616cfaafc8f43b9e7bd3b01d359258ba5c8d1e1121cf9150bf999c7f259d9e6b29a7315f0510bccd8c93aa0eb8";
         private static IConfiguration Configuration { get; set; }
-
-        //static Program()
-        //{
-        //    var builder = new ConfigurationBuilder()
-        //        .SetBasePath(Directory.GetCurrentDirectory())
-        //        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-        //    Configuration = builder.Build();
-        //}
 
         // The connection string to the database.
         static string _connectionString = "Server=FTSQLD201;Database=License;Integrated Security=True";
@@ -42,12 +30,33 @@ namespace ADBanker_CE_Import
 
         static void Main(string[] args)
         {
-            //Console.WriteLine("Starting ...");
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    config.SetBasePath(Directory.GetCurrentDirectory());
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddSingleton<ImportProcessor>();
+                    services.AddSingleton<IApiService, ApiService>();
+                    services.AddSingleton<IUtilityService, UtilityService>();
+                })
+                .ConfigureLogging(logging =>
+                {
+                    //logging.ClearProviders();
+                    //logging.AddConsole();
+                })
+                .Build();
+
+            var processor = host.Services.GetRequiredService<ImportProcessor>();
+            processor.Run();
+
             LogInfo("Starting Import of CE Completion.");
 
-            DoIt().Wait();
+            //DoIt().Wait();
+            processor.Run();
 
-            //Console.ReadLine();
             LogInfo("ADBanker Import of CE Completed...");
 
         }
@@ -84,7 +93,7 @@ namespace ADBanker_CE_Import
                         Console.WriteLine("TeamMemberID is null or empty. Skipping this record.");
                         LogInfo(string.Format("TeamMemberID is null or empty for - Name: {0} {1} state: {2}. Skipping this record.", courseInfo.Student.FirstName, courseInfo.Student.LastName, courseInfo.Student.StateCode));
                         
-                        var isFound = CheckImport(new StudentCourseInfo
+                        var isFound = CheckImport(new ViewModels.StudentCourseInfo
                         {
                             EmployeeID = null,
                             CourseState = courseInfo.Student.StateCode,
@@ -169,7 +178,7 @@ namespace ADBanker_CE_Import
                         continue;
                     }
 
-                    var studentCourseInfo = new StudentCourseInfo
+                    var studentCourseInfo = new ViewModels.StudentCourseInfo
                     {
                         EmployeeID = courseInfo.Student.EmployeeId,
                         CourseState = courseInfo.Student.StateCode,
@@ -342,7 +351,7 @@ namespace ADBanker_CE_Import
             }
         }
 
-        private static bool CheckImport(StudentCourseInfo vInput)
+        private static bool CheckImport(ViewModels.StudentCourseInfo vInput)
         {
             if (vInput == null)
                 return false;
@@ -417,7 +426,7 @@ namespace ADBanker_CE_Import
         /// <param name="page">The page to get.</param>
         /// <param name="tags">The tags to filter the articles with.</param>
         /// <returns>The page of articles.</returns>
-        private static bool InsertEmployeeCE(StudentCourseInfo vInput)
+        private static bool InsertEmployeeCE(ViewModels.StudentCourseInfo vInput)
         {
             try
             {
@@ -519,20 +528,20 @@ namespace ADBanker_CE_Import
         }
     }
 
-    public class StudentCourseInfo
-    {
-        public int? EmployeeID { get; set; }
-        public string? CourseState { get; set; }
-        public string? StudentName { get; set; }
-        public string? CourseTitle { get; set; }
-        public DateTime CompletionDate { get; set; }
-        public DateTime ReportedDate { get; set; }
-        public double TotalCredits { get; set; }
+    //public class StudentCourseInfo
+    //{
+    //    public int? EmployeeID { get; set; }
+    //    public string? CourseState { get; set; }
+    //    public string? StudentName { get; set; }
+    //    public string? CourseTitle { get; set; }
+    //    public DateTime CompletionDate { get; set; }
+    //    public DateTime ReportedDate { get; set; }
+    //    public double TotalCredits { get; set; }
 
 
-        public int ContEducationRequirementID { get; set; }
-        public DateTime ContEducationTakenDate { get; set; }
-        public double CreditHoursTaken { get; set; }
-        public string? AdditionalNotes { get; set; }
-    }
+    //    public int ContEducationRequirementID { get; set; }
+    //    public DateTime ContEducationTakenDate { get; set; }
+    //    public double CreditHoursTaken { get; set; }
+    //    public string? AdditionalNotes { get; set; }
+    //}
 }
