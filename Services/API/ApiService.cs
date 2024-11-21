@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,26 +13,32 @@ namespace ADBanker_CE_Import.Services
 {
     internal class ApiService : IApiService
     {
+        private readonly IConfiguration _config;
+        private readonly string? _baseUrl;
+        private readonly string? _clientId;
+        private readonly string? _clientSecret;
 
+        public ApiService(IConfiguration config)
+        {
+            _config = config;
+            _baseUrl = _config["AdBankerApi:BaseUrl"] ?? string.Empty;
+            _clientId = _config["AdBankerApi:ClientId"] ?? string.Empty;
+            _clientSecret = _config["AdBankerApi:ClientSecret"] ?? string.Empty;
+        }
 
-        /// <summary>
-        /// This method uses the OAuth Client Credentials Flow to get an Access Token to provide
-        /// Authorization to the APIs.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<string> GetAccessToken(string baseUrl, string clientId, string clientSecret)
+        public async Task<string> GetAccessToken()
         {
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri(baseUrl);
-                var authURL = baseUrl + "v1/Auth/Tokens";
+                client.BaseAddress = new Uri(_baseUrl);
+                var authURL = _baseUrl + "v1/Auth/Tokens";
 
                 // We want the response to be JSON.
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 // Add Basic Auth header
-                string clientIdAndSecret = $"{clientId}:{clientSecret}";
+                string clientIdAndSecret = $"{_clientId}:{_clientSecret}";
                 var authValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(clientIdAndSecret));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authValue);
 
@@ -52,44 +59,18 @@ namespace ADBanker_CE_Import.Services
 
         }
 
-        /// <summary>
-        /// Gets the page of Articles.
-        /// </summary>
-        /// <param name="page">The page to get.</param>
-        /// <param name="tags">The tags to filter the articles with.</param>
-        /// <returns>The page of articles.</returns>
-        public async Task<dynamic> GetCompletedCourses(string baseUrl, string accessToken, int page, string tags)
+        public async Task<dynamic> GetCompletedCourses(string? accessToken, int? page, string? tags)
         {
-            //DateTime getAfterDate = DateTime.Now.AddDays(-14);
-            //using (SqlConnection conn = new SqlConnection(_connectionString))
-            //{
-            //    string query = @"
-            //                    SELECT Top(1) CreateDate 
-            //                    FROM stgADBankerImport 
-            //                    ORDER BY CreateDate ";
-
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        //cmd.Parameters.Add(new SqlParameter("@GEID", courseInfo.Student.EmployeeId.ToString()));
-
-            //        conn.Open();
-            //        getAfterDate = (DateTime)cmd.ExecuteScalar();
-            //    }
-            //}
-
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri(baseUrl);
+                client.BaseAddress = new Uri(_baseUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                // Add the Authorization header with the AccessToken.
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
 
-                // create the URL string.
                 string url = string.Format("v1/CETrackingOverview/GetAll", page, HttpUtility.UrlEncode(tags));
 
-                // Create the request body.
                 var requestBody = new
                 {
                     Limit = 150,
@@ -113,18 +94,13 @@ namespace ADBanker_CE_Import.Services
                     }
                 };
 
-
-                // Convert the request body to JSON and then to StringContent.
                 var json = JsonConvert.SerializeObject(requestBody);
                 var data = new StringContent(json, Encoding.UTF8, "application/json");
 
-                // make the request
-                //HttpResponseMessage response = await client.GetAsync(url);
                 HttpResponseMessage response = await client.PostAsync(url, data);
 
-                // parse the response and return the data.
                 string jsonString = await response.Content.ReadAsStringAsync();
-                object responseData = JsonConvert.DeserializeObject(jsonString);
+                object? responseData = JsonConvert.DeserializeObject(jsonString);
 
                 return (dynamic)responseData;
             }
