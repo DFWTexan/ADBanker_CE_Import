@@ -8,6 +8,7 @@ namespace ADBanker_CE_Import.Services
 {
     public interface IUtilityService
     {
+        public void PermissionTest();
         public void CreateLog(string strApplication, string strMsg, string? strAdditionalInfo = null, string msgType = "ERROR");
         public void LogInfo(string vInfoText, string? vInfoSource = null);
         public void LogError(string vErrorText, string vErrorSource, object? errorObject = null, string? vUserSOEID = null);

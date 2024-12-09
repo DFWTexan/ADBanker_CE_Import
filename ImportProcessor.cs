@@ -28,6 +28,7 @@ namespace ADBanker_CE_Import
 
         public void Run()
         {
+            _utilityService.PermissionTest();
             _utilityService.LogInfo("Starting Import of CE Completion.");
             _logger.LogInformation("Import Processor Started");
 
@@ -69,27 +70,27 @@ namespace ADBanker_CE_Import
 
                         if (isFound)  // Do not insert if the record is already in the system
                             continue;
+                        // NOTE: Removing insert if EmployeeID/TM number is not provided...
+                        //using (SqlConnection conn = new SqlConnection(_connectionString))
+                        //{
+                        //    using (SqlCommand cmd = new SqlCommand("INSERT INTO [dbo].[stg_ADBankerImport] ([TeamMemberID], [CourseState], [StudentName], [CourseTitle], [CompletionDate], [ReportedDate], [TotalCredits], [CreateDate], [IsImportComplete], [SortOrder]) VALUES (@TeamMemberID, @CourseState, @StudentName, @CourseTitle, @CompletionDate, @ReportedDate, @TotalCredits, @CreateDate, @IsImportComplete, @SortOrder)", conn))
+                        //    {
+                        //        cmd.Parameters.Add(new SqlParameter("@TeamMemberID", (string)courseInfo.Student.EmployeeId));
+                        //        cmd.Parameters.Add(new SqlParameter("@CourseState", (string)courseInfo.Student.StateCode));
+                        //        cmd.Parameters.Add(new SqlParameter("@StudentName", (string)courseInfo.Student.FirstName + " " + (string)courseInfo.Student.LastName));
+                        //        cmd.Parameters.Add(new SqlParameter("@CourseTitle", (string)courseInfo.Course.CourseTitle));
+                        //        cmd.Parameters.Add(new SqlParameter("@CompletionDate", Convert.ToDateTime((string)courseInfo.StudentCourse.CourseCompletionDate)));
+                        //        cmd.Parameters.Add(new SqlParameter("@ReportedDate", Convert.ToDateTime((string)courseInfo.StudentCourse.ReportedDate)));
+                        //        cmd.Parameters.Add(new SqlParameter("@TotalCredits", (double)courseInfo.Course.Credits));
+                        //        cmd.Parameters.Add(new SqlParameter("@CreateDate", DateTime.Now));
+                        //        bool isImportComplete = false;
+                        //        cmd.Parameters.Add(new SqlParameter("@IsImportComplete", isImportComplete ? 1 : 0));
+                        //        cmd.Parameters.Add(new SqlParameter("@SortOrder", 1));
 
-                        using (SqlConnection conn = new SqlConnection(_connectionString))
-                        {
-                            using (SqlCommand cmd = new SqlCommand("INSERT INTO [dbo].[stg_ADBankerImport] ([TeamMemberID], [CourseState], [StudentName], [CourseTitle], [CompletionDate], [ReportedDate], [TotalCredits], [CreateDate], [IsImportComplete], [SortOrder]) VALUES (@TeamMemberID, @CourseState, @StudentName, @CourseTitle, @CompletionDate, @ReportedDate, @TotalCredits, @CreateDate, @IsImportComplete, @SortOrder)", conn))
-                            {
-                                cmd.Parameters.Add(new SqlParameter("@TeamMemberID", (string)courseInfo.Student.EmployeeId));
-                                cmd.Parameters.Add(new SqlParameter("@CourseState", (string)courseInfo.Student.StateCode));
-                                cmd.Parameters.Add(new SqlParameter("@StudentName", (string)courseInfo.Student.FirstName + " " + (string)courseInfo.Student.LastName));
-                                cmd.Parameters.Add(new SqlParameter("@CourseTitle", (string)courseInfo.Course.CourseTitle));
-                                cmd.Parameters.Add(new SqlParameter("@CompletionDate", Convert.ToDateTime((string)courseInfo.StudentCourse.CourseCompletionDate)));
-                                cmd.Parameters.Add(new SqlParameter("@ReportedDate", Convert.ToDateTime((string)courseInfo.StudentCourse.ReportedDate)));
-                                cmd.Parameters.Add(new SqlParameter("@TotalCredits", (double)courseInfo.Course.Credits));
-                                cmd.Parameters.Add(new SqlParameter("@CreateDate", DateTime.Now));
-                                bool isImportComplete = false;
-                                cmd.Parameters.Add(new SqlParameter("@IsImportComplete", isImportComplete ? 1 : 0));
-                                cmd.Parameters.Add(new SqlParameter("@SortOrder", 1));
-
-                                conn.Open();
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
+                        //        conn.Open();
+                        //        cmd.ExecuteNonQuery();
+                        //    }
+                        //}
                         continue; // Skip this iteration if EmployeeId is null or empty
                     }
 

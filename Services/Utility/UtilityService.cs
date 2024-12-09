@@ -9,6 +9,35 @@ namespace ADBanker_CE_Import.Services
 {
     public class UtilityService : IUtilityService
     {
+        public void PermissionTest()
+        {
+            // Build the configuration
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Get the environment
+            var environment = configuration["Environment"];
+
+            // Get the OneTrakV2LogPath for the current environment
+            var oneTrakV2LogPath = configuration[$"EnvironmentSettings:{environment}:OneTrakV2LogPath"];
+            try
+            {
+                string path = oneTrakV2LogPath + "ADBankerImport-Info" + "_" + System.DateTime.Today.ToString("yyyy-MM-dd") + ".log";
+
+                // Try to create and write to a file
+                File.WriteAllText(path, "Write access test.");
+                Console.WriteLine($"Write access verified. Test file created at: {path}");
+
+                // Clean up
+                File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Write access denied. Error: {ex.Message}");
+            }
+        }
         public void CreateLog(string strApplication, string strMsg, string? strAdditionalInfo = null, string msgType = "ERROR")
         {
             // Build the configuration
