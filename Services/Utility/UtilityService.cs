@@ -29,6 +29,7 @@ namespace ADBanker_CE_Import.Services
                 // Try to create and write to a file
                 File.WriteAllText(path, "Write access test.");
                 Console.WriteLine($"Write access verified. Test file created at: {path}");
+                LogInfo($"Write access verified. Test file created at: {path}");
 
                 // Clean up
                 File.Delete(path);
@@ -36,6 +37,7 @@ namespace ADBanker_CE_Import.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Write access denied. Error: {ex.Message}");
+                LogError($"Write access denied. Error: {ex.Message}", "ADBankerImport-Api");
             }
         }
         public void CreateLog(string strApplication, string strMsg, string? strAdditionalInfo = null, string msgType = "ERROR")
@@ -62,13 +64,13 @@ namespace ADBanker_CE_Import.Services
 
                     using (TextWriter tw = new StreamWriter(path))
                     {
-                        tw.WriteLine(strApplication + " ***** " + System.DateTime.Now.ToString() + Environment.NewLine);
+                        tw.WriteLine(strApplication + " ***** " + System.DateTime.Now.ToString());
                         //tw.WriteLine(msgType == "ERROR" ? strAdditionalInfo : "INFO" + " => " + strMsg + Environment.NewLine);
                         string strLog = string.Format("{0} => {1}", msgType == "ERROR" ? strAdditionalInfo : "INFO", strMsg);
 
                         tw.WriteLine(strLog + Environment.NewLine);
                         //tw.WriteLine(strAdditionalInfo + Environment.NewLine);
-                        tw.WriteLine(Environment.NewLine);
+                        //tw.WriteLine(Environment.NewLine);
                     }
 
                 }
@@ -76,13 +78,13 @@ namespace ADBanker_CE_Import.Services
                 {
                     using (StreamWriter w = File.AppendText(path))
                     {
-                        w.WriteLine(strApplication + " ***** " + System.DateTime.Now.ToString() + Environment.NewLine);
+                        w.WriteLine(strApplication + " ***** " + System.DateTime.Now.ToString());
                         //w.WriteLine(msgType == "ERROR" ? strAdditionalInfo : "INFO" + " => " + strMsg + Environment.NewLine);
                         string strLog = string.Format("{0} => {1}", msgType == "ERROR" ? strAdditionalInfo : "INFO", strMsg);
 
                         w.WriteLine(strLog + Environment.NewLine);
                         //w.WriteLine(strAdditionalInfo + Environment.NewLine);
-                        w.WriteLine(Environment.NewLine);
+                        //w.WriteLine(Environment.NewLine);
                     }
                 }
 

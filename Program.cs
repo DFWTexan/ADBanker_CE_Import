@@ -1,10 +1,4 @@
-﻿using System.Data;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Web;
-using Microsoft.Data.SqlClient;
-using Newtonsoft.Json;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using ADBanker_CE_Import.Services;
